@@ -1,19 +1,43 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import axios from "axios";
+import { render, screen, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import App from "./App";
 
+jest.mock("axios");
+
 describe("App", () => {
-  test("renders App component", async () => {
+  test("fetches stories from an api and displays them", async () => {
+    const stories = [
+      { objectID: "1", title: "Test forventer" },
+      { objectID: "2", title: "å få disse to elementene" },
+    ];
+
+    const promise = Promise.resolve({ data: { hits: stories } });
+
+    axios.get.mockImplementationOnce(() => promise);
+
     render(<App />);
 
-    await screen.findByText(/Signed in as/);
+    await act(async () => {
+      await userEvent.click(screen.getByRole("button"));
+    });
+    
+    expect(screen.getAllByRole("listitem")).toHaveLength(2);
+  });
 
-    expect(screen.queryByText(/Searches for JavaScript/)).toBeNull();
+  test("fetch-stories fail results in error message", async () => {
+    axios.get.mockImplementationOnce(() => Promise.reject(new Error()));
 
-    await userEvent.type(screen.getByRole("textbox"), "JavaScript");
+    render(<App />);
 
-    expect(screen.getByText(/Searches for JavaScript/)).toBeInTheDocument();
+    await act(async () => {
+      await userEvent.click(screen.getByRole("button"));
+    });
+
+    const message = await screen.findByText(/something is wrong/);
+
+    expect(message).toBeInTheDocument();
   });
 });

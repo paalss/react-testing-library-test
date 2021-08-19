@@ -1,11 +1,11 @@
 import React from "react";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { Search } from "./App";
 
 describe("Search", () => {
-  test("calls the onChange callback handler", () => {
+  test("calls the onChange callback handler", async () => {
     const onChange = jest.fn();
 
     render(
@@ -14,11 +14,9 @@ describe("Search", () => {
       </Search>
     );
 
-    fireEvent.change(screen.getByRole("textbox"), {
-      target: { value: "JavaScript" },
-    });
+    await userEvent.type(screen.getByRole("textbox"), "JavaScript");
 
-    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange).toHaveBeenCalledTimes(10);
   });
   // test("empty", ()=>{
   //   expect(true).toBeTruthy()

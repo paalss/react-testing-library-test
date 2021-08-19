@@ -1,50 +1,39 @@
-import React from 'react'
+import React, { useState } from "react";
+import axios from "axios";
 
-function getUser() {
-  return Promise.resolve({ id: '1', name: 'Robin' });
-}
- 
+const URL = "http://hn.algolia.com/api/v1/search";
+
 function App() {
-  const [search, setSearch] = React.useState('');
-  const [user, setUser] = React.useState(null);
- 
-  React.useEffect(() => {
-    const loadUser = async () => {
-      const user = await getUser();
-      setUser(user);
-    };
- 
-    loadUser();
-  }, []);
- 
-  function handleChange(event) {
-    setSearch(event.target.value);
-  }
- 
-  return (
-    <div>
-      {user ? <p>Signed in as {user.name}</p> : null}
- 
-      <Search value={search} onChange={handleChange}>
-        Search:
-      </Search>
- 
-      <p>Searches for {search ? search : '...'}</p>
-    </div>
-  );
-}
+  const [stories, setStories] = useState([]);
+  const [error, setError] = useState(null);
 
-export function Search({ value, onChange, children }) {
+  async function handleFetch(event) {
+    let result;
+
+    try {
+      result = await axios.get(`${URL}?query=React`);
+      setStories(result.data.hits);
+    } catch (error) {
+      setError(error);
+    }
+  }
+
   return (
-    <div>
-      <label htmlFor="search">{children}</label>
-      <input
-        id="search"
-        type="text"
-        value={value}
-        onChange={onChange}
-      />
-    </div>
+    <>
+      <button type="button" onClick={handleFetch}>
+        Fetch Stories
+      </button>
+
+      {error && <span>something is wrong ...</span>}
+
+      <ul>
+        {stories.map((story) => (
+          <li key={story.objectID}>
+            <a href={story.url}>{story.title}</a>
+          </li>
+        ))}
+      </ul>
+    </>
   );
 }
 
